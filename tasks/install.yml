@@ -1,0 +1,26 @@
+- name: Install slapd
+  package:
+    name: '{{ slapd_package_name }}'
+    state: present
+
+- name: Add systemd override dir
+  file:
+    path: /etc/systemd/system/slapd.service.d
+    state: directory
+
+- name: Add system override file
+  template:
+    src: systemd/override.conf.j2
+    dest: /etc/systemd/system/slapd.service.d/override.conf
+
+- name: Reload systemd
+  systemd_service:
+    daemon_reload: true
+
+- name: Enable slapd
+  service:
+    name: '{{ slapd_service_name }}'
+    enabled: True
+  tags:
+  - config
+  - openldap

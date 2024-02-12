@@ -1,0 +1,11 @@
+slapd_package_name: 
+  - openldap-servers
+  - openldap-clients
+  - python-ldap
+openldap_modsdir: /usr/lib64/openldap
+openldap_user: ldap
+openldap_group: ldap
+openldap_confdir: /etc/openldap/
+openldap_ssldir: /etc/openldap/ssl
+openldap_schemadir: "{{ openldap_confdir }}/schema"
+slapd_service_name: slapd

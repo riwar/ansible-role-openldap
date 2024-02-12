@@ -1,0 +1,33 @@
+- name: Load openldap schemas
+  shell: "{{ openldap_ldap_modify_root }} {{ openldap_schemadir }}/{{ item }}"
+  register: schemas
+  failed_when: false
+  loop_control:
+    pause: '{{ openldap_loop_pause }}'
+  loop: "{{ openldap_schemas }}"
+  tags:
+    - schemas
+
+- name: Configure ldap entires
+  ldap_entry:
+    dn: "{{ item.dn }}"
+    objectClass: "{{ item.objectClass | default([]) }}"
+    attributes: "{{ item.attributes | default({}) }}"
+    xorder_discovery: "disable"
+    state: "{{ item.state | default('present') }}"
+  loop: "{{ openldap_entries }}"
+  loop_control:
+    pause: '{{ openldap_loop_pause }}'
+  tags: 
+  - entries
+
+- name: Configure ldap attributes
+  ldap_attrs:
+    dn: "{{ item.dn }}"
+    attributes: "{{ item.attributes | default({}) }}"
+    state: "{{ item.state | default('exact') }}"
+  loop: "{{ openldap_attributes }}"
+  loop_control:
+    pause: '{{ openldap_loop_pause }}'
+  tags: 
+  - attributes

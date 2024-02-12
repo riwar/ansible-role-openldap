@@ -1,81 +1,48 @@
 Role Name
 =========
 
-Install openldap server
+Install and configure openldap server on Almalinux 9
 
 Requirements
 ------------
 
-FreeBSD 11/12, debian 8(+?)
+Almalinux9, RedHat (?)
 
 Role Variables (default)
 ------------------------
 
-  * `openldap_schmas` ([core, cosine, inetorgperson, nis ])
-    LDAP schemas to include in config
-    if a file exists in files/openldap/{{name}}.schema, it will be copied
-  * `openldap_slave_rid` (0)
-    value for slave 'rid' suitable for host_vars (must be unique)
-    while rest of config can stay unique in playbook or group_vars
-  * `slapd_rc_flags ("-h 'ldap:/// ldaps:///'")
-  * `openldap_db_engine` (mdb - hdb for OpenBSD)
-  * `openldap_db_maxsize` (1073741824)
-  * `openldap_bases` ([])
-    List of ldap base dict's
-    One base can have: (slapd.conf syntax)
-    * `database` (`openldap_db_engine`)
-    * `maxsize` (`openldap_db_maxsize`))
-      estimated size of database in RAM
-    * `rootdn` ()
-    * `suffix` ()
-    * `directory` ( `openldap_datadir`, system-dependant)
-      **you NEED to define it if more than one db**
-    * `overlays ([])`
-      list of overlay's names (module will be loaded if needed)
-      Adding "syncrepl" here makes a syncrepl master
-    * `includes` ([])
-      List of files to include, relative path to:
-      * in playbook: playbook/files/openldap/ for source
-      * destination: `openldap_confdir`/
-    * `slave`: dict ({})
-      Makes this server a slave (syncrepl protocol)
-      * `rid` (`openldap_slave_rid`) *
-      * `provider` () *
-      * `searchbase` (suffix)
-      * `binddn` () *
-      * `credentials` () *
-      * `bindmethod` (simple)
-      * `scope` (sub)
-      * `schemachecking` (on)
-      * `type` (refreshAndPersist)
-      * `retry` ("60 10 120 +")
-      * `interval` (00:00:00:15)
-      * `tls_cacert` (ldap_tls_cacert)
-      * `updateref` ()
-    * `indexes` (["objectClass","pres,eq"]) (+ ["entryUUID,entryCSN","eq"] if slave)
-      list of couples attributeName(,s…), typeofsearch(es)
-      "objectClass" and "entryUUID,entryCSN" (if slave) will always be appended
-      can be generated with: 
-```
-grep ^index openldap/templates/slapd.conf.j2|sed 's/index *//; s/\([^ ]*\) *\([^ ]*\) *$/  - [ "\1", "\2" ]/'
-```
+Check [defaults/main.yml](defaults/main.yml) for a list of default options and values
 
+Role Variables 
+------------------------
 ### TLS
-  * `ldap_tls_cacert` () path to ca certificate file
-    if absolute (starts with /), path of an existing ca certificate file (shared with ldap_client role)
+```yaml
+# All of these are optional, to use them create a dir called files/openlapd and put your certs
+# in that directory
+openldap_tls_cert: tls cert
+openldap_tls_key:  tls key
+openldap_tls_cacert: cacert
+```
 
-Files are relative to openldap/`inventory_hostname` for source
-go to `openldap_confdir`/ssl/ at destination
-  * `openldap_tls_cert` ()
-    if defined, name of server cert
-  * `openldap_tls_key` ()
-    if defined, name of server key
-  * `openldap_tls_cacert` (`ldap_tls_cacert`)
-    path to a file to copy to `openldap_confdir`/ca.crt, override `ldap_tls_cacert`
+### Openldap config
+```yaml
+openldap_entries:
+  - dn: ou=a,dc=dn,dc=to,dc=add
+    state: absent | present (default)
+    objectClass:
+      - list of objectClasses to add
+    attributes:
+      dict: of attributes
+
+openldap_attributes:
+  - dn: ou=a,dc=dn,dc=to,dc=change
+    state: 'exact (default) |present|absent'
+    attributes:
+      dict: of attributes
+```
  
 Dependencies
 ------------
-
 
 Example Playbook
 ----------------
@@ -83,31 +50,27 @@ Example Playbook
 ```
 - hosts: servers
   roles:
-    - criecm.openldap
+    - openldap
   vars:
     openldap_schemas:
-      - core
-      - cosine
-      - nis
-      - inetorgperson
-      - rfc2739
-    openldap_bases:
-      rootdn: cn=admin
-      suffix: dc=at,dc=home
-      includes: [ slapd.access ]
-      overlays:
-        - dynlist
-        - ppolicy
-        - smbk5pwd
-      indexes:
-        - [ "uid,uidNumber,gidNumber,memberUID", "pres,eq" ]
-      slave:
-        rid: 675
-        provider: ldaps://master.ldap.univ.fr:636
-        binddn: cn=bind,dc=dn
-        credentials: bindpw
-        bindmethod: simple
-        
+      - core.ldif
+      - cosine.ldif
+      - nis.ldif
+      - inetorgperson.ldif
+      - rfc2739.ldif
+    openldap_entries:
+      - dn:  'cn=module{0},cn=config'
+        objectClass: olcModuleList
+        attributes:
+          cn: module
+          olcModulepath: /usr/lib64/openldap
+          olcModuleload: 
+            - syncprov.la
+    openldap_attributes:
+      - dn: 'olcDatabase={0}config,cn=config'
+        attributes:
+          olcRootDN: 'cn=admin,cn=config'
+          olcRootPW: '{Crypt) password'
 ```
 
 License
