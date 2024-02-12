@@ -47,7 +47,7 @@ Dependencies
 Example Playbook
 ----------------
 
-```
+```yaml
 - hosts: servers
   roles:
     - openldap
