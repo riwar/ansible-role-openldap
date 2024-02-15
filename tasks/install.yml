@@ -10,12 +10,17 @@
 
 - name: Add system override file
   template:
-    src: systemd/override.conf.j2
+    src: "{{ openldap_systemd_override_template }}"
     dest: /etc/systemd/system/slapd.service.d/override.conf
+  tags: 
+  - systemd
 
 - name: Reload systemd
   systemd_service:
     daemon_reload: true
+  notify: restart slapd
+  tags:
+  - systemd
 
 - name: Enable slapd
   service:

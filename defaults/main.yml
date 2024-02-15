@@ -20,4 +20,6 @@ openldap_modules:
 openldap_ldap_modify_root: "ldapmodify -ca -Y EXTERNAL -H ldapi:/// -f"
 openldap_listen: "{{ ansible_default_ipv4.address }}"
 
-openldap_loop_pause: 5
+openldap_loop_pause: 0
+
+openldap_systemd_override_template: systemd/override_ssl_only.conf.j2

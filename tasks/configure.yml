@@ -18,6 +18,8 @@
   loop: "{{ openldap_entries }}"
   loop_control:
     pause: '{{ openldap_loop_pause }}'
+  no_log: "{{ item.no_log | default('yes') }}"
+  diff: "{{ item.diff | default(false) }}"
   tags: 
   - entries
 
@@ -26,6 +28,8 @@
     dn: "{{ item.dn }}"
     attributes: "{{ item.attributes | default({}) }}"
     state: "{{ item.state | default('exact') }}"
+  no_log: "{{ item.no_log | default('yes') }}"
+  diff: "{{ item.diff | default(false) }}"
   loop: "{{ openldap_attributes }}"
   loop_control:
     pause: '{{ openldap_loop_pause }}'

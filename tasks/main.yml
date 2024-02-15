@@ -11,6 +11,8 @@
 
 - name: Include install
   include_tasks: install.yml
+  tags:
+  - systemd
 
 - name: datadir
   file:
