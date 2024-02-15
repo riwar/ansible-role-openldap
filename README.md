@@ -33,7 +33,7 @@ openldap_entries:
       - list of objectClasses to add
     attributes:
       dict: of attributes
-    no_log: yes | no | true | false (default)
+    no_log: no | yes (default)
 
 openldap_attributes:
   - dn: ou=a,dc=dn,dc=to,dc=change
