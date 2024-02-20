@@ -26,6 +26,7 @@
 - name: Configure ldap attributes
   ldap_attrs:
     dn: "{{ item.dn }}"
+    ordered: "{{ item.ordered | default(false) }}"
     attributes: "{{ item.attributes | default({}) }}"
     state: "{{ item.state | default('exact') }}"
   no_log: "{{ item.no_log | default('yes') }}"
